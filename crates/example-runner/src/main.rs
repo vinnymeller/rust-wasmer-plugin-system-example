@@ -1,4 +1,4 @@
-use wasmer::{imports, Instance, Module, Store, Value};
+use wasmer::{imports, Instance, Module, Pages, Store, TypedFunction, Value};
 
 static WASM: &[u8] =
     include_bytes!("../../../target/wasm32-unknown-unknown/debug/example_plugin.wasm");
@@ -15,4 +15,25 @@ fn main() {
         .call(&mut store, &[Value::I32(1), Value::I32(2)])
         .unwrap();
     println!("1 + 2 = {:?}", result);
+
+    let memory = instance.exports.get_memory("memory").unwrap();
+    let view = memory.view(&store);
+    let s = "supercalifragilisticexpialidocious".to_string();
+    let bytes = s.as_bytes();
+    let len = bytes.len();
+    let len = bytes.len();
+
+    view.write(0, bytes).unwrap();
+    let length = instance.exports.get_function("_length").unwrap();
+    println!("here");
+    let wasm_len = match length.call(&mut store, &[Value::I32(1), Value::I32(len as i32)]) {
+        Ok(l) => l.get(0).unwrap().unwrap_i32(),
+        Err(e) => {
+            println!("error: {:?}", e);
+            return;
+        }
+    };
+    println!("original length: {}", len);
+    println!("wasm length: {:?}", wasm_len);
+
 }
