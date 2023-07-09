@@ -1,0 +1,16 @@
+[package]
+name = "wasmer-plugin-example-rust"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+
+
+[workspace]
+members = [
+    "./crates/example-macro",
+    "./crates/example-plugin",
+    "./crates/example-runner",
+]
