@@ -33,3 +33,17 @@ pub fn _double(ptr: i32, len: u32) -> i32 {
     };
     double(&value).as_ptr() as i32
 }
+
+#[no_mangle]
+pub fn _double_nolen(ptr: i32, len: u32) -> i32 {
+    let value = unsafe {
+        let slice = std::slice::from_raw_parts(ptr as _, len as _);
+        String::from_utf8_lossy(slice)
+    };
+    let ret = double(&value);
+    let len = ret.len() as u32;
+    unsafe {
+        std::ptr::write(1 as _, len);
+    }
+    ret.as_ptr() as _
+}
