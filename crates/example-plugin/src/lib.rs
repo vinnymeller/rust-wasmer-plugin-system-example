@@ -18,3 +18,18 @@ pub fn _length(ptr: i32, len: u32) -> u32 {
     };
     length(&value)
 }
+
+// this is how we'd double a str in pure rust
+pub fn double(s: &str) -> String {
+    s.repeat(2)
+}
+
+// but DIRTY wasm can only use fucking ints so here we go
+#[no_mangle]
+pub fn _double(ptr: i32, len: u32) -> i32 {
+    let value = unsafe {
+        let slice = std::slice::from_raw_parts(ptr as _, len as _);
+        String::from_utf8_lossy(slice)
+    };
+    double(&value).as_ptr() as i32
+}
