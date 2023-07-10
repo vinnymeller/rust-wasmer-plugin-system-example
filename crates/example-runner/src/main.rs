@@ -33,7 +33,7 @@ fn run_length() {
     let len = bytes.len();
     let len = bytes.len();
 
-    memory.view(&wasm.store).write(0, bytes).unwrap();
+    memory.view(&wasm.store).write(1, bytes).unwrap();
     let length = wasm.instance.exports.get_function("_length").unwrap();
     let wasm_len = match length.call(&mut wasm.store, &[Value::I32(1), Value::I32(len as i32)]) {
         Ok(l) => l.get(0).unwrap().unwrap_i32(),
@@ -73,8 +73,39 @@ fn get_double_str() {
     println!("2x orign: {}", s.repeat(2));
 }
 
+fn get_double_str_dont_know_length() {
+    let mut wasm = get_wasm();
+    let memory = wasm.instance.exports.get_memory("memory").unwrap();
+    let s = "supercalifragilisticexpialidocious".to_string();
+    let bytes = s.as_bytes();
+    let len = bytes.len();
+    // set first 4 bytes to 0
+    memory.view(&wasm.store).write(0, &[0, 0, 0, 0]).unwrap();
+    memory.view(&wasm.store).write(5, bytes).unwrap();
+    let double = wasm.instance.exports.get_function("_double_nolen").unwrap();
+    let double_ptr = match double.call(&mut wasm.store, &[Value::I32(5), Value::I32(len as i32)]) {
+        Ok(l) => l.get(0).unwrap().unwrap_i32(),
+        Err(e) => {
+            println!("error: {:?}", e);
+            return;
+        }
+    };
+    // get the length written to the first 4 bytes
+    let mut new_len_bytes = [0u8; 4];
+    memory.view(&wasm.store).read(1, &mut new_len_bytes).unwrap();
+    let new_len = u32::from_ne_bytes(new_len_bytes);
+    // read the string now
+    let mut byte_buf = vec![0; new_len as usize];
+    memory.view(&wasm.store).read(double_ptr as _, &mut byte_buf).unwrap();
+    let new_str = String::from_utf8_lossy(&byte_buf);
+    println!("original: {}", s);
+    println!("wasm str: {}", new_str);
+
+}
+
 fn main() {
     run_add();
     run_length();
     get_double_str();
+    get_double_str_dont_know_length();
 }
