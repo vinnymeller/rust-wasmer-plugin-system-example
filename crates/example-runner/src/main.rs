@@ -118,18 +118,19 @@ fn get_multiple_with_bincode() {
     let now = SystemTime::now();
     let diff = now.duration_since(UNIX_EPOCH).expect("Time went backwards");
     let u = ((diff.as_millis() % 10) + 1) as u8;
-    let pair = (u,s);
+    let pair = (u, s);
     let bytes = serialize(&pair).expect("Failed to serialize tuple");
     let len = bytes.len();
     memory.view(&wasm.store).write(4, &bytes).unwrap();
     let multiply = wasm.instance.exports.get_function("_multiply").unwrap();
-    let multiply_start = match multiply.call(&mut wasm.store, &[Value::I32(4), Value::I32(len as _)]) {
-        Ok(l) => l.get(0).unwrap().unwrap_i32(),
-        Err(e) => {
-            println!("error: {:?}", e);
-            return;
-        }
-    };
+    let multiply_start =
+        match multiply.call(&mut wasm.store, &[Value::I32(4), Value::I32(len as _)]) {
+            Ok(l) => l.get(0).unwrap().unwrap_i32(),
+            Err(e) => {
+                println!("error: {:?}", e);
+                return;
+            }
+        };
     let mut new_len_bytes = [0u8; 4];
     memory
         .view(&wasm.store)

@@ -1,14 +1,15 @@
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
+pub use example_macro::plugin_helper;
+
+pub fn convert_data<'a, D>(bytes: &'a [u8]) -> D
+where
+    D: serde::Deserialize<'a>,
+{
+    bincode::deserialize(bytes).expect("Failed to deserialize bytes")
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
+pub fn revert_data<S>(s: S) -> Vec<u8>
+where
+    S: serde::Serialize,
+{
+    bincode::serialize(&s).expect("Failed to serialize data")
 }
